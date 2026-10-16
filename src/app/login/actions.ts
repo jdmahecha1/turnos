@@ -13,7 +13,20 @@ const credentials = z.object({
   mode: z.enum(["signin", "signup"]),
 });
 
-export type AuthState = { error?: string; info?: string };
+export type AuthState = {
+  error?: string;
+  /** Sign-up worked and a confirmation email went to this address. */
+  sentTo?: string;
+  /** Sign-in was refused because this address isn't confirmed yet. */
+  unconfirmed?: string;
+};
+
+const RATE_LIMITED = "Ya enviamos varios correos. Espera unos minutos e inténtalo de nuevo.";
+
+async function confirmUrl() {
+  const origin = (await headers()).get("origin") ?? "";
+  return `${origin}/auth/confirm`;
+}
 
 export async function authenticate(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const parsed = credentials.safeParse(Object.fromEntries(formData));
@@ -23,19 +36,41 @@ export async function authenticate(_prev: AuthState, formData: FormData): Promis
 
   if (mode === "signin") {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error?.code === "email_not_confirmed") {
+      return {
+        error: "Aún no has verificado tu correo. Abre el enlace que te enviamos.",
+        unconfirmed: email,
+      };
+    }
     if (error) return { error: "Correo o contraseña incorrectos." };
     redirect("/panel");
   }
 
-  const origin = (await headers()).get("origin") ?? "";
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { emailRedirectTo: `${origin}/auth/confirm` },
+    options: { emailRedirectTo: await confirmUrl() },
   });
-  if (error) return { error: "No pudimos crear la cuenta. ¿Ya estás registrado?" };
-  if (!data.session) return { info: "Te enviamos un correo para confirmar tu cuenta." };
-  redirect("/panel");
+  if (error?.code === "over_email_send_rate_limit") return { error: RATE_LIMITED };
+  if (error) return { error: "No pudimos crear la cuenta. Revisa los datos e inténtalo de nuevo." };
+  // Email confirmation off: the user is already signed in
+  if (data.session) redirect("/panel");
+  // For privacy Supabase answers the same way when the email already exists, so the message
+  // can't reveal who is registered.
+  return { sentTo: email };
+}
+
+export async function resendConfirmation(email: string): Promise<{ ok?: boolean; error?: string }> {
+  if (!z.email().safeParse(email).success) return { error: "Correo inválido." };
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: { emailRedirectTo: await confirmUrl() },
+  });
+  if (error?.code === "over_email_send_rate_limit") return { error: RATE_LIMITED };
+  if (error) return { error: "No pudimos reenviar el correo. Inténtalo más tarde." };
+  return { ok: true };
 }
 
 export async function signOut() {

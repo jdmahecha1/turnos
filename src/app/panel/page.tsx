@@ -14,6 +14,7 @@ import {
 } from "@/lib/time";
 
 import { signOut } from "../login/actions";
+import { Notice } from "../notice";
 import { cancelAppointment, setServiceActive } from "./actions";
 import { AddServiceForm, CreateBusinessForm, HoursForm } from "./forms";
 
@@ -163,10 +164,15 @@ function PanelSkeleton() {
   );
 }
 
-export default function PanelPage() {
+export default function PanelPage(props: PageProps<"/panel">) {
   return (
-    <Suspense fallback={<PanelSkeleton />}>
-      <Panel />
-    </Suspense>
+    <>
+      <Suspense>
+        <Notice searchParams={props.searchParams} />
+      </Suspense>
+      <Suspense fallback={<PanelSkeleton />}>
+        <Panel />
+      </Suspense>
+    </>
   );
 }
