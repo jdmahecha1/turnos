@@ -7,7 +7,8 @@
 ![Supabase](https://img.shields.io/badge/Supabase-Postgres%2017-3ecf8e)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-[Leer en español](README.es.md)
+**[Live demo → turnos-delta-six.vercel.app](https://turnos-delta-six.vercel.app)** · try a booking at
+[/b/la-80](https://turnos-delta-six.vercel.app/b/la-80) · [Leer en español](README.es.md)
 
 Customers pick a service, a day and a free time slot and book in three steps from their phone.
 Owners get a panel with upcoming appointments, services and opening hours. The interesting part

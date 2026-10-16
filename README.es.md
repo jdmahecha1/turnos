@@ -7,7 +7,8 @@
 ![Supabase](https://img.shields.io/badge/Supabase-Postgres%2017-3ecf8e)
 ![Licencia](https://img.shields.io/badge/licencia-MIT-green)
 
-[Read in English](README.md)
+**[Demo en vivo → turnos-delta-six.vercel.app](https://turnos-delta-six.vercel.app)** · prueba una reserva en
+[/b/la-80](https://turnos-delta-six.vercel.app/b/la-80) · [Read in English](README.md)
 
 Los clientes eligen servicio, día y un horario libre, y reservan en tres pasos desde el celular.
 El dueño tiene un panel con sus próximas citas, servicios y horario de atención. Lo interesante
